@@ -9,7 +9,6 @@ services:
     environment:
       REDIS_HOST: redis
       REDIS_PORT: 6379
-    network_mode: host
 
   redis:
     image: redis:7
@@ -19,7 +18,6 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    network_mode: host
 
 volumes:
   redis_data:
