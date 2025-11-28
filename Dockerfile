@@ -9,7 +9,7 @@ FROM python:3.11-slim
 WORKDIR /app
 COPY --from=builder /app/requirements /usr/local/lib/python3.11/site-packages/
 COPY app.py app.py
-EXPOSE 5000
+EXPOSE 3000
 RUN useradd -m appuser
 USER appuser
 CMD ["python3", "app.py"]

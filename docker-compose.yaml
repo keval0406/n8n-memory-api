@@ -2,7 +2,7 @@ services:
   app:
     build: .
     ports:
-      - "5000:5000"
+      - "3000:3000"
     restart: unless-stopped
     depends_on:
       - redis
