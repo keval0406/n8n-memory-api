@@ -116,12 +116,12 @@ async def add_to_history(payload: List[Dict[str, Any]] = Body(...)):
 
 
 @app.get("/history")
-async def get_history():
+async def get_history(items: int = 5):
     """Return entire stored conversation."""
     raw_items = r.lrange(REDIS_KEY, 0, -1)
     history = [json.loads(item) for item in raw_items]
 
-    return JSONResponse(content={"history": history})
+    return JSONResponse(content={"history": history[-items:]})
 
 
 @app.delete("/history")
