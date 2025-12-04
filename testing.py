@@ -89,6 +89,9 @@ async def get_history(
     If session_id is NOT provided -> return all conversations.
     """
 
+    # ---------------------------------------------------------------------
+    # CASE 1: session_id given -> fetch specific conversation
+    # ---------------------------------------------------------------------
     if session_id:
         key = redis_key(session_id)
         raw_items = r.lrange(key, 0, -1)
@@ -98,6 +101,10 @@ async def get_history(
             "session_id": session_id,
             "history": history[-items:]
         })
+
+    # ---------------------------------------------------------------------
+    # CASE 2: No session_id -> return ALL available conversations
+    # ---------------------------------------------------------------------
 
     # List all keys like conversation:*
     all_keys = r.keys("conversation:*")
@@ -127,4 +134,4 @@ async def clear_history(session_id: str = Query(...)):
     return {"status": "session cleared", "session_id": session_id}
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=3000)
+    uvicorn.run(app, host="0.0.0.0", port=5000)
