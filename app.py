@@ -14,8 +14,8 @@ redis_port = int(os.getenv("REDIS_PORT", 6379))
 r = redis.Redis(host=redis_host, port=redis_port, db=0, decode_responses=True)
 
 
-def redis_key(session_id: str) -> str:
-    return f"conversation:{session_id}"
+def redis_key(sessionId: str) -> str:
+    return f"conversation:{sessionId}"
 
 
 @app.get("/")
@@ -24,16 +24,16 @@ async def root():
 
 
 @app.get("/get-session-id")
-def get_session_id():
+def get_sessionId():
     """Generate and return a unique session ID."""
     import uuid
-    session_id = str(uuid.uuid4())
-    return {"session_id": session_id}
+    sessionId = str(uuid.uuid4())
+    return {"sessionId": sessionId}
 
 
 @app.post("/history")
 async def add_to_history(
-    session_id: str = Query(..., description="Unique conversation ID"),
+    sessionId: str = Query(..., description="Unique conversation ID"),
     payload: List[Dict[str, Any]] = Body(...)
 ):
     """
@@ -44,9 +44,7 @@ async def add_to_history(
     ]
     """
 
-    print(session_id)
-
-    key = redis_key(session_id)
+    key = redis_key(sessionId)
 
     # Validate items
     for item in payload:
@@ -57,7 +55,7 @@ async def add_to_history(
 
     return {
         "status": "added",
-        "session_id": session_id,
+        "sessionId": sessionId,
         "added_messages": len(payload),
         "total_messages": r.llen(key)
     }
@@ -65,37 +63,37 @@ async def add_to_history(
 
 # @app.get("/history")
 # async def get_history(
-#     session_id: str = Query(...),
+#     sessionId: str = Query(...),
 #     items: int = 10
 # ):
 #     """Return last `items` messages from the conversation."""
-#     key = redis_key(session_id)
+#     key = redis_key(sessionId)
 
 #     raw_items = r.lrange(key, 0, -1)
 #     history = [json.loads(item) for item in raw_items]
 
 #     return JSONResponse(content={
-#         "session_id": session_id,
+#         "sessionId": sessionId,
 #         "history": history[-items:]
 #     })
 
 @app.get("/history")
 async def get_history(
-    session_id: str | None = Query(None),
+    sessionId: str | None = Query(None),
     items: int = 10
 ):
     """
-    If session_id is provided -> return history for that session.
-    If session_id is NOT provided -> return all conversations.
+    If sessionId is provided -> return history for that session.
+    If sessionId is NOT provided -> return all conversations.
     """
 
-    if session_id:
-        key = redis_key(session_id)
+    if sessionId:
+        key = redis_key(sessionId)
         raw_items = r.lrange(key, 0, -1)
         history = [json.loads(item) for item in raw_items]
 
         return JSONResponse(content={
-            "session_id": session_id,
+            "sessionId": sessionId,
             "history": history[-items:]
         })
 
@@ -120,11 +118,11 @@ async def get_history(
 
 
 @app.delete("/history")
-async def clear_history(session_id: str = Query(...)):
+async def clear_history(sessionId: str = Query(...)):
     """Clear a specific conversation."""
-    key = redis_key(session_id)
+    key = redis_key(sessionId)
     r.delete(key)
-    return {"status": "session cleared", "session_id": session_id}
+    return {"status": "session cleared", "sessionId": sessionId}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=3000)
