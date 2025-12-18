@@ -1,6 +1,7 @@
 import os
 import json
 import redis
+import uuid
 import uvicorn
 from fastapi import FastAPI, Body, Query
 from typing import List, Dict, Any
@@ -12,6 +13,9 @@ redis_host = os.getenv("REDIS_HOST", "localhost")
 redis_port = int(os.getenv("REDIS_PORT", 6379))
 
 r = redis.Redis(host=redis_host, port=redis_port, db=0, decode_responses=True)
+
+session = {}
+ticket_counter = 1
 
 
 def redis_key(sessionId: str) -> str:
@@ -26,9 +30,32 @@ async def root():
 @app.get("/get-session-id")
 def get_sessionId():
     """Generate and return a unique session ID."""
-    import uuid
     sessionId = str(uuid.uuid4())
     return {"sessionId": sessionId}
+
+
+@app.get("/get-ticket-id")
+def get_or_create_session(sessionId: str = Query(..., description="Session ID")):
+    global ticket_counter
+
+    # If session exists, return existing ticket
+    if sessionId in session:
+        return {
+            "sessionId": sessionId,
+            "ticketId": session[sessionId],
+            "isTicketExists": True
+        }
+
+    # Create new ticket if session does not exist
+    ticketId = f"TICKET#{ticket_counter}"
+    ticket_counter += 1
+    session[sessionId] = ticketId
+
+    return {
+        "sessionId": sessionId,
+        "ticketId": ticketId,
+        "isTicketExists": False
+    }
 
 
 @app.post("/history")

@@ -5,3 +5,6 @@ request.json
 README.md
 prompts.txt
 updated_prompt.txt
+.env
+test.py
+formatted_response.txt
