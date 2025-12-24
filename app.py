@@ -1,3 +1,4 @@
+from fastapi import Query
 import os
 import json
 import redis
@@ -103,6 +104,42 @@ async def add_to_history(
 #         "sessionId": sessionId,
 #         "history": history[-items:]
 #     })
+
+
+@app.get("/get-history-by-ticket")
+async def get_history_by_ticket(
+    ticketId: str = Query(..., min_length=1)
+):
+    """Return all messages from the conversation by ticket ID."""
+
+    # Reverse lookup: ticketId → sessionId
+    sessionId = next(
+        (sid for sid, tid in session.items() if tid == ticketId),
+        None
+    )
+
+    if sessionId is None:
+        return JSONResponse(
+            content={"error": "Ticket ID not found."},
+            status_code=404
+        )
+
+    key = redis_key(sessionId)
+    raw_items = r.lrange(key, 0, -1)
+
+    history = []
+    for item in raw_items:
+        try:
+            history.append(json.loads(item))
+        except json.JSONDecodeError:
+            continue  # skip malformed entries safely
+
+    return {
+        "ticketId": ticketId,
+        "sessionId": sessionId,
+        "history": history
+    }
+
 
 @app.get("/history")
 async def get_history(
